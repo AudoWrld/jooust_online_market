@@ -4,6 +4,7 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
+from django.conf import settings
 
 
 class UserManager(BaseUserManager):
@@ -56,3 +57,28 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"{self.first_name} {self.second_name} <{self.email}>"
+
+
+class DeliveryArea(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="delivery_areas",
+    )
+    area = models.CharField(max_length=100, help_text="Gate A, Gate B")
+    hostel_name = models.CharField(
+        max_length=100, help_text="Sunshine, Manhattan, Waridi"
+    )
+    is_active = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.hostel_name} - {self.area} ({'Active' if self.is_active else 'Inactive'})"
+
+    def save(self, *args, **kwargs):
+        # if this delivery area is being set as active,
+        # deactivate all other areas for this user
+        if self.is_active:
+            DeliveryArea.objects.filter(user=self.user, is_active=True).update(
+                is_active=False
+            )
+        super().save(*args, **kwargs)
