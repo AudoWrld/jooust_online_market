@@ -17,7 +17,6 @@ class UserManager(BaseUserManager):
             raise ValueError("Users must have a first name")
         if not second_name:
             raise ValueError("Users must have a second name")
-
         email = self.normalize_email(email)
         user = self.model(
             email=email, first_name=first_name, second_name=second_name, **extra_fields
@@ -31,7 +30,6 @@ class UserManager(BaseUserManager):
     ):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
-
         return self.create_user(
             email, first_name, second_name, password, **extra_fields
         )
@@ -44,14 +42,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     mpesa_phone_number = models.CharField(
         max_length=15, unique=True, null=True, blank=True
     )
+    avatar = models.URLField(max_length=500, null=True, blank=True)
     email_verified = models.BooleanField(default=False)
-
     # required fields for admin and auth
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-
     objects = UserManager()
-
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "second_name"]
 
