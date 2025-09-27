@@ -1,6 +1,8 @@
 from pathlib import Path
 import os
-from decouple import config
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,8 +21,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Auth Apps
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
     # Your Apps
-    "users",
+    "accounts",
     "products",
 ]
 
@@ -32,6 +39,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "jooust_online_market.urls"
@@ -46,6 +54,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "core.context_processors.google_client_id",
             ],
         },
     },
@@ -79,22 +88,74 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Account Creation
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+SITE_ID = 1
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = [
+    "email*",
+    "first_name*",
+    "last_name*",
+    "mpesa_phone_number*",
+    "password1*",
+    "password2*",
+]
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+
+# Social account settings
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_STORE_TOKENS = True
+
+# Custom forms and adapters
+ACCOUNT_FORMS = {"signup": "accounts.forms.CustomSignupForm"}
+SOCIALACCOUNT_ADAPTER = "accounts.adapters.CustomSocialAccountAdapter"
+
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APP": {
+            "client_id": os.environ.get("GOOGLE_CLIENT_ID"),
+            "secret": os.environ.get("GOOGLE_CLIENT_SECRET"),
+            "key": "",
+        },
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+            "prompt": "select_account",
+        },
+        "OAUTH_PKCE_ENABLED": True,
+    }
+}
 
 # Email
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # API Configurations(STK Push) - move to environment variables
 USE_MOCK_STK_PUSH = False
 BASE_URL = ""
-STK_PUSH_API_USERNAME = config("STK_PUSH_API_USERNAME")
-STK_PUSH_API_PASSWORD = config("STK_PUSH_API_PASSWORD")
-STK_PUSH_CHANNEL_ID = config("PAYHERO_CHANNEL_ID")
+STK_PUSH_API_USERNAME = os.environ.get("STK_PUSH_API_USERNAME")
+STK_PUSH_API_PASSWORD = os.environ.get("STK_PUSH_API_PASSWORD")
+STK_PUSH_CHANNEL_ID = os.environ.get("PAYHERO_CHANNEL_ID")
 API_REQUEST_TIMEOUT = 1
 PAYHERO_ALLOWED_IPS = []
 
@@ -120,10 +181,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Default User
-AUTH_USER_MODEL = "users.User"
-
 # Routing
-LOGIN_URL = ""
-LOGIN_REDIRECT_URL = ""
-LOGOUT_REDIRECT_URL = ""
+LOGIN_URL = "/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
