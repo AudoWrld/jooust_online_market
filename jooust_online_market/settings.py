@@ -13,6 +13,8 @@ SECRET_KEY = "django-insecure-g4g=)$on&6e^#2e)@=76ni=q=^3(v@72hl-!c--hpxlp+7zh=o
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+
+
 # Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -95,9 +97,6 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 SITE_ID = 1
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = [
     "email*",
